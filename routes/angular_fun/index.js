@@ -1,5 +1,7 @@
 var express = require('express');
 var router = express.Router();
+var cassandra = require('cassandra-driver');
+var async = require('async');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -11,10 +13,28 @@ router.get('/table', function(req, res, next) {
 });
 
 router.get('/table/data', function(req, res, next) {
-  res.json([{ id: 1, surname: 'Weglarz', position: 'Dyrektor', salary: 3000 },
-  	{ id: 2, surname: 'Brzezinski', position: 'Profesor', salary: 2000 },
-  	{ id: 3, surname: 'Dalkowski', position: 'Asystent', salary: 1000 }
-  	]);
+
+	var client = new cassandra.Client({contactPoints: ['127.0.0.1'], keyspace: 'employees'});
+
+	var employees = [];
+	client.execute("SELECT id, surname, salary FROM employees;", function (err, result) {
+		console.log('1: ' + err + ' ' + result);
+		if (!err){
+			if (result.rows.length > 0) {
+				console.log('result.rows.length' + result.rows.length);
+
+				employees = result.rows.map(function(dbEmp){
+					return {
+						id: dbEmp.id,
+						surname: dbEmp.surname,
+						position: dbEmp.position,
+						salary: dbEmp.salary
+					};
+				});
+			}
+		}
+		res.json(employees);
+   	});
 });
 
 

@@ -14,26 +14,29 @@ html
 
 
 
-	body(ng-app='tableModule')
+	body(ng-app='myApp.controllers')
 		.container(style='width:600px' ng-controller='tableController as tableCtrl')
 			.row
 				h1(style='text-align:center;')
 					| Pracownicy
+			.row
+				h4
+					| Last update: {{lastUpdate | date:'yyyy-MM-dd HH:mm:ss'}}
 			.row(style='margin-top:30px')
 				.col-md-6
 					.row
 						.col-md-4(style='text-align:right;')
 							label(style='margin-top:7px;')
-								| Wyszukaj
+								| Nazwisko
 						.col-md-8
-							input.form-control(type="text")
+							input.form-control(type="text" ng-keydown="tableCtrl.onSurnameFilterKeyDown($event)")
 				.col-md-6
 					.row
 						.col-md-4(style='text-align:right;')
 							label(style='margin-top:7px;')
-								| Rodzaj
+								| Stanowisko
 						.col-md-8
-							input.form-control(type="text")
+							input.form-control(type="text" ng-keydown="tableCtrl.onPositionFilterKeyDown()")
 			.row
 				table.table.table-striped
 					thead
@@ -47,7 +50,7 @@ html
 							td 
 								| płaca
 					tbody
-						tr(ng-repeat="employee in tableCtrl.employees")
+						tr(ng-repeat="employee in employees")
 							td
 								| {{employee.id}}
 							td
@@ -58,4 +61,5 @@ html
 								| {{employee.salary | currency}}
 
 		// my scripts
-		script(type='text/javascript' src='/javascripts/angular_fun/table/table_module.js')
+		script(type='text/javascript' src='/javascripts/angular_fun/controllers/table_controller.js')
+		script(type='text/javascript' src='/javascripts/angular_fun/services/employees_data_provider.js')
