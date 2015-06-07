@@ -1,30 +1,73 @@
 (function(){
 
-	var app = angular.module('myApp.controllers', ['myApp.services']);
+	var tableModule = angular.module('myApp.controllers', ['myApp.services', 'blockUI']);
 
-	app.controller('tableController', ['$scope', 'employeesDataProvider', 
-		function($scope, employeesDataProvider){
+	tableModule.controller('tableController', ['$scope', '$http', 'employeesDataProvider', 'blockUI', 
+		function($scope, $http, employeesDataProvider, blockUI){
 
 			var ctrl = this;
+			
+			$scope.model = {
+				lastUpdate: new Date(),
+				surnameFilter: "",
+				positionFilter: "",
+				employees: [],
+			};
 
-			$scope.lastUpdate = new Date();
-			employeesDataProvider.getAllEmployees(function(data){
-			 	$scope.employees = data;
-			});
+			(function init(){
+				loadAllEmployees();
+				setupFilters();
+			})();
 
-			this.onSurnameFilterKeyDown = function(event){
-				$scope.lastUpdate = new Date();	
-				employeesDataProvider.getAllEmployees(function(data){
-				 	$scope.employees = data;
+			function loadAllEmployees(){
+				employeesDataProvider.getAllEmployees(function(employeesData){
+			 		$scope.model.employees = employeesData;
 				});
 			};
 
-			this.onPositionFilterKeyDown = function(event){
-				alert("yo");
-				if(event.keyCode == 13){
-					alert("yo yo 2");
-				}
+			function setupFilters(){
+				var filtersChange = Rx.Observable.merge(
+						Rx.Observable.$watch($scope, 'model.surnameFilter'),
+						Rx.Observable.$watch($scope, 'model.positionFilter'))
+					.skip(2);
+
+				filtersChange
+					.subscribe(function (data) {
+						//blockUI.start();
+				    });
+
+				filtersChange
+					.throttle(1000)
+			    	.flatMap(function (e) {
+				        return Rx.Observable.fromPromise($http({
+						        method: 'GET',
+						        url: '/angular_fun/table/filteredData',
+						        params: { position: 1 }}
+						));
+				    })
+				    .subscribe(function (data) {
+				    	debugger;
+				        $scope.model.employees = data.data;
+				    },
+				    function (err) {
+				        $scope.error = err.message;
+				    });
+
 			};
+
+			// this.onSurnameFilterKeyDown = function(event){
+			// 	$scope.lastUpdate = new Date();	
+			// 	employeesDataProvider.getAllEmployees(function(data){
+			// 	 	$scope.employees = data;
+			// 	});
+			// };
+
+			// this.onPositionFilterKeyDown = function(event){
+			// 	alert("yo: " + event.keyCode);
+			// 	if(event.keyCode == 13){
+			// 		alert("yo yo 2");
+			// 	}
+			// };
 
 		}]);
 

@@ -12,6 +12,9 @@
 					.error(function(data, status, headers, config) {
 						throw 'error';
 					});
+			},
+			getFilteredEmployees: function(handleData){
+				
 			}
 		};
 	}]);
